@@ -5,7 +5,7 @@
 #define N_FLOORS 16
 #include <stdint.h>
 #include <stdbool.h>
-
+#include <stdio.h>
 typedef enum {
     MSG_UNKNOWN = 0,
     MSG_RESPONSE_1,
@@ -17,8 +17,7 @@ typedef enum {
 typedef enum {
     WAITING_COMMAND,
     RECEIVING_COMMAND,
-    SENDING_COMMAND,
-    PROCESSING_COMMAND,
+    SENDING_COMMAND_RESPONSE,
     DOOR_OPENING,
     DOOR_CLOSING,
     MOVING_UP,
@@ -35,13 +34,13 @@ typedef enum{
 
 // Comandos simples
 typedef enum{
-    INIT = 'r',
-    OPEN = 'a',
-    CLOSE = 'f',
-    UP = 's',
-    DOWN = 'd',
-    STOP = 'p',
-    QUERY_POSITION = 'x'
+    INIT_CMD = 'r',
+    OPEN_CMD = 'a',
+    CLOSE_CMD = 'f',
+    UP_CMD = 's',
+    DOWN_CMD = 'd',
+    STOP_CMD = 'p',
+    QUERY_POSITION_CMD = 'x'
 } elevator_command;
 
 // Comandos com parâmetro
@@ -136,9 +135,6 @@ typedef struct {
     elevator_state_machine state_machine;
 } elevator_current_state;
 
-call_direction get_call_direction(elevator_current_state *state);
 void run_operation(elevator_current_state *state);
-uint8_t get_current_floor(uint32_t elevator_height);
-elevator_msg_type detect_msg_type(const char *msg, size_t len);
 
 #endif // ELEVATOR_PROTOCOL_H

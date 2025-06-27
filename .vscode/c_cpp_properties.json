@@ -1,0 +1,20 @@
+
+{
+    "configurations": [
+        {
+            "name": "ARM",
+            "includePath": [
+                "${default}",
+                "C:/Arm/Packs/ARM/CMSIS/5.7.0/CMSIS/Core/Include",
+                "C:/Keil_v5/ARM/ARMCC/include"
+
+            ],
+            "defines": [
+                
+            ],
+            "cStandard": "c99",
+            "intelliSenseMode": "clang-arm"
+        }
+    ],
+    "version": 4
+}
