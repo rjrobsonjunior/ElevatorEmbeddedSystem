@@ -1,7 +1,30 @@
 #ifndef ELEVATOR_PROTOCOL_H
 #define ELEVATOR_PROTOCOL_H
 
+#define ELEVATOR_HEIGHT_PER_FLOOR 5000 // mm
+#define N_FLOORS 16
 #include <stdint.h>
+#include <stdbool.h>
+
+typedef enum {
+    MSG_UNKNOWN = 0,
+    MSG_RESPONSE_1,
+    MSG_RESPONSE_2,
+    MSG_COMMAND_1,
+    MSG_COMMAND_2
+} elevator_msg_type;
+
+typedef enum {
+    WAITING_COMMAND,
+    RECEIVING_COMMAND,
+    SENDING_COMMAND,
+    PROCESSING_COMMAND,
+    DOOR_OPENING,
+    DOOR_CLOSING,
+    MOVING_UP,
+    MOVING_DOWN,
+    STOPPED
+} elevator_state_machine;
 
 // Elevadores
 typedef enum{
@@ -75,29 +98,47 @@ typedef enum{
 
 typedef struct{
     uint32_t elevator_height;
-} receive_command_1;
+} receive_response_1;
 
 typedef struct{
     elevator_event event;
-} receive_command_2;
+} receive_response_2;
 
+//<elevador>I (i maiúsculo)<botão>
 typedef struct{
     elevator_position elevator;
+    char carecter_ID; // caracter: 'I'
     elevator_btt_id btt_pressed;
-} receive_command_3;
+} receive_command_1;
 
-
+//<elevador>E<andar_dezena><andar_unidade><direção do botâo>
 typedef struct{
     elevator_position elevator;
+    char carecter_ID; // caracter: 'E'
     uint8_t floor;         // 0–15
     call_direction dir;
-} receive_command_4;
+} receive_command_2;
 
+//<elevador><comando><parâmetro>D
 typedef struct {
     elevator_position elevator;
     elevator_command command;
     elevator_btt_id button;
     uint8_t end; // caracter: 0xD
 } trasmit_command;
+
+typedef struct {
+    elevator_position elevator;
+    uint8_t current_floor;         // 0–15
+    call_direction dir;
+    uint32_t elevator_height;      // mm
+    bool requests[N_FLOORS];
+    elevator_state_machine state_machine;
+} elevator_current_state;
+
+call_direction get_call_direction(elevator_current_state *state);
+void run_operation(elevator_current_state *state);
+uint8_t get_current_floor(uint32_t elevator_height);
+elevator_msg_type detect_msg_type(const char *msg, size_t len);
 
 #endif // ELEVATOR_PROTOCOL_H
