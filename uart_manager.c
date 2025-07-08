@@ -8,11 +8,14 @@ extern threads_elevators ptr_str_elevators;
 
 extern uint32_t SysClock;
 extern osMutexId_t uart_mutex;
+
 /* ---------------------------------------------------------*/
 
+elevator_position elevator_waiting_response;
 
 
-void UARTSendString(char *msg, bool hold_uart){
+void UARTSendString(char *msg, bool hold_uart, elevator_position id_elevator)
+{
     osMutexAcquire(uart_mutex, osWaitForever);
     for (int i = 0; i < MAX_CMD_SIZE && msg[i] != '/n'; i++)
     {
@@ -22,6 +25,7 @@ void UARTSendString(char *msg, bool hold_uart){
     if(!hold_uart)
     {
         osMutexRelease(uart_mutex);
+        elevator_waiting_response = id_elevator;
     }
 }
 
@@ -45,21 +49,40 @@ void UARTIntHandler(void)
     
     switch (rx_buffer[0]) 
     {
-        case 'e': //left elevator
+        case LEFT: //left elevator
+            elevator_left.receive_command = true;
+            break;
+
+        case RIGHT: //right elevator
+            elevator_right.receive_command = true;
+            break;
+
+        case CENTER: //center elevator
+            elevator_center.receive_command = true;
+            break;
+
+        default:
+            break;
+    }
+    
+    switch (elevator_waiting_response)
+    {
+        case LEFT: //left elevator
             osThreadFlagsSet(ptr_str_elevators.elevator_left, 0x01);
             break;
-        case 'd': //right elevator
+
+        case RIGHT: //right elevator
             osThreadFlagsSet(ptr_str_elevators.elevator_right, 0x01);
             break;
-        case 'c': //center elevator
+
+        case CENTER: //center elevator
             osThreadFlagsSet(ptr_str_elevators.elevator_center, 0x01);
             break;
+
         default:
             break;
     }
     osMutexRelease(uart_mutex);
-    // Aqui você pode sinalizar para uma thread/processo que a mensagem chegou
-    //osThreadFlagsSet
 }
 
 void SetupUart(void) {

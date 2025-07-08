@@ -1,4 +1,5 @@
 #include "elevator_protocol.h"
+#include "uart_manager.h"
 
 void mount_cmd(char *command, elevator_command cmd, elevator_position elevator, elevator_btt_id floor) 
 {
@@ -22,7 +23,7 @@ void send_cmd(elevator_command cmd, elevator_current_state *state, elevator_btt_
 {
     char command[MAX_CMD_SIZE];
     mount_cmd(command, cmd, state->elevator, floor);
-    UARTSendString(command, hold_uart);
+    UARTSendString(command, hold_uart, state->elevator);
 }
 
 void get_call_direction(elevator_current_state *state) 
@@ -91,31 +92,23 @@ void run_operation(elevator_current_state *state)
     char msg[10] = {0};  // message buffer
     switch (state->state_machine)  // Assuming state_machine is an enum
     {
-    case WAITING_COMMAND:
-        osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
-        // get_message(msg, sizeof(msg));  // This function should fill msg with the received command
-        state->state_machine = RECEIVING_COMMAND;  // Transition to receiving state
-        break;
     case RECEIVING_COMMAND:
-            // get the message from the input buffer
-            // get_message(msg, sizeof(msg));
             switch (detect_msg_type(state->command_buffer))
             {
                 case MSG_COMMAND_1:
-                    state->requests[msg[2] - '0'] = true;  // Assuming msg[2] is a valid digit representing the floor
+                    state->requests[msg[2] - '0'] = true;
                     get_call_direction(state);
                     if(state->dir == UP) {
                         state->state_machine = MOVING_UP;
                     } else if (state->dir == DOWN) {
                         state->state_machine = MOVING_DOWN;
                     } else {
-                        state->state_machine = STOPPED;  // No direction, stay stopped
+                        state->state_machine = STOPPED;
                     }
                     break;
                 case MSG_COMMAND_2:
                     state->current_floor = (msg[2] - '0') * 10 + (msg[3] - '0');
                     state->dir = (call_direction)msg[4];
-                    //state->state_machine = MOVING_UP;  // or MOVING_DOWN based on direction
                     break;
                 default:
                     break;
@@ -166,6 +159,8 @@ void run_operation(elevator_current_state *state)
         }
         break;  
     case CHECKING_POSITION:
+        send_cmd(QUERY_POSITION_CMD, state, GROUND, true);
+        osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever); //wating response
 
         break;
     case STOPPED:
@@ -173,7 +168,8 @@ void run_operation(elevator_current_state *state)
         {
             state->requests[state->current_floor] = false;  
             state->state_machine = DOOR_OPENING; 
-        } else 
+        } 
+        else 
         {
         }
         break;
@@ -188,6 +184,12 @@ void elevator_Thread(void *argument)
     send_cmd(INIT_CMD, elevator_state, GROUND, false);  // Initialize the elevator
     for(;;)
     {
+        if(elevator_state->receive_command)
+        {
+            elevator_state->next_state_machine = elevator_state->state_machine;
+            elevator_state->state_machine = RECEIVING_COMMAND;
+            elevator_state->receive_command = false;
+        }
         run_operation(elevator_state);
         osDelay(50);
     }

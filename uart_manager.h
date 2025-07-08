@@ -24,6 +24,5 @@
 
     void UARTIntHandler(void);
     void SetupUart(void);
-    void UARTSendString(char *msg, bool hold_uart);
-
+    void UARTSendString(char *msg, bool hold_uart, elevator_position id_elevator);
 #endif

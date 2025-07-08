@@ -5,7 +5,10 @@
 #define ELEVATOR_HEIGHT_PER_FLOOR 5000 // mm
 #define N_FLOORS 16
 
-#include "uart_manager.h"
+#include <stdbool.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdint.h>
 
 typedef enum {
     MSG_UNKNOWN = 0,
