@@ -1,11 +1,14 @@
 #ifndef ELEVATOR_PROTOCOL_H
 #define ELEVATOR_PROTOCOL_H
 
+#define MAX_CMD_SIZE 20
 #define ELEVATOR_HEIGHT_PER_FLOOR 5000 // mm
 #define N_FLOORS 16
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+
 typedef enum {
     MSG_UNKNOWN = 0,
     MSG_RESPONSE_1,
@@ -133,8 +136,11 @@ typedef struct {
     uint32_t elevator_height;      // mm
     bool requests[N_FLOORS];
     elevator_state_machine state_machine;
+    bool receive_command;
+    char command_buffer[MAX_CMD_SIZE]; 
+    osThreadAttr_t *uart_thread; // Pointer to UART manager thread attributes
 } elevator_current_state;
 
-void run_operation(elevator_current_state *state);
+void elevator_Thread(void *argument);
 
 #endif // ELEVATOR_PROTOCOL_H

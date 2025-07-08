@@ -139,23 +139,11 @@ void run_operation(elevator_current_state *state)
     }
 }
 
-int main() {
-    elevator_current_state state = {
-        .elevator = CENTER,
-        .current_floor = 0,
-        .dir = DOWN,
-        .elevator_height = 0,
-        .requests = {false},
-        .state_machine = WAITING_COMMAND
-    };
-
-    // Simulate receiving a command
-    state.state_machine = RECEIVING_COMMAND;
-    run_operation(&state);
-
-    // Print the current state for debugging
-    printf("Current Floor: %d, Direction: %c, Elevator Height: %d mm\n",
-           state.current_floor, state.dir, state.elevator_height);
-
-    return 0;
+elevator_Thread(void *argument) 
+{
+    elevator_current_state *elevator_state = (elevator_current_state *)argument;
+    for(;;)
+    {
+        run_operation(elevator_state);
+    }
 }

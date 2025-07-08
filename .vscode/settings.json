@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "stdint.h": "c",
-        "tm4c1294ncpdt.h": "c"
+        "tm4c1294ncpdt.h": "c",
+        "text_encoding": "c",
+        "typeinfo": "c"
     }
 }
