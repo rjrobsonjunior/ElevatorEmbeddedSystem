@@ -1,0 +1,38 @@
+# Arquivos de build e temporários da IDE Keil
+*.uvoptx
+*.uvprojx
+*.uvguix
+*.bak
+*.dep
+*.lst
+*.map
+*.iex
+*.o
+*.obj
+*.crf
+*.htm
+*.tra
+*.axf
+*.elf
+*.hex
+*.sct
+*.plg
+*.lnp
+*.log
+*.d
+*.sbr
+*.tmp
+*.rtebuild
+*.scvd
+*.uvgui.*
+
+# Pastas de build
+/Objects/
+/Listings/
+/DebugConfig/
+/RTE/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
