@@ -16,7 +16,7 @@ uint32_t SysClock;
 osMutexId_t uart_mutex;
 /* ---------------------------------------------------------*/
 
-int main(void) {
+/int main(void) {
     // Configura o clock do sistema para 120MHz
     SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_240), 120000000);
     SystemCoreClock = SysClock;
@@ -27,7 +27,7 @@ int main(void) {
     osThreadAttr_t thr_elevator_center = { .name = "elevator_Thread", .priority = osPriorityNormal };
     osThreadAttr_t thr_elevator_right = { .name = "elevator_Thread", .priority = osPriorityNormal };
 
-    elevator_left.elevator = CENTER;
+    elevator_left.elevator = LEFT;
     elevator_left.current_floor = 0;
     elevator_left.dir = DOWN;
     elevator_left.elevator_height = 0;
@@ -39,25 +39,25 @@ int main(void) {
     elevator_center.elevator_height = 0;
     elevator_center.state_machine = WAITING_COMMAND;
 
-    elevator_right.elevator = CENTER;
+    elevator_right.elevator = RIGHT;
     elevator_right.current_floor = 0;
     elevator_right.dir = DOWN;
     elevator_right.elevator_height = 0;
     elevator_right.state_machine = WAITING_COMMAND;
 	
-		for(uint8_t i; i < N_FLOORS; i++)
-		{
-			elevator_right.requests[i] = false;
-			elevator_center.requests[i] = false;
-			elevator_left.requests[i] = false;
-		}
-		
-		for(uint8_t i; i < MAX_CMD_SIZE; i++)
-		{
-			elevator_right.command_buffer[i] = 0;
-			elevator_center.command_buffer[i] = 0;
-			elevator_left.command_buffer[i] = 0;
-		}
+    for(uint8_t i; i < N_FLOORS; i++)
+    {
+        elevator_right.requests[i] = false;
+        elevator_center.requests[i] = false;
+        elevator_left.requests[i] = false;
+    }
+    
+    for(uint8_t i; i < MAX_CMD_SIZE; i++)
+    {
+        elevator_right.command_buffer[i] = 0;
+        elevator_center.command_buffer[i] = 0;
+        elevator_left.command_buffer[i] = 0;
+    }
 		
     ptr_str_elevators.elevator_left = &thr_elevator_left;
     ptr_str_elevators.elevator_center = &thr_elevator_center;
