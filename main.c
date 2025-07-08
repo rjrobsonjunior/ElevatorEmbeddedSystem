@@ -13,8 +13,14 @@
 #include "uart_manager.h"
 #include "elevator_protocol.h"
 
+/*-------------------- Global Variables --------------------*/
+elevator_current_state elevator_right;
+elevator_current_state elevator_center;
+elevator_current_state elevator_left;
+threads_elevators ptr_str_elevators;
 
 uint32_t SysClock;
+/* ---------------------------------------------------------*/
 
 int main(void) {
     // Configura o clock do sistema para 120MHz
@@ -28,7 +34,7 @@ int main(void) {
     osThreadAttr_t elevator_right = { .name = "elevator_Thread", .priority = osPriorityNormal };
     osThreadAttr_t uart_manager = { .name = "uart_Thread", .priority = osPriorityHigh };
 
-    elevator_current_state elevator_left = {
+    elevator_left = {
         .elevator = LEFT,
         .current_floor = 0,
         .dir = DOWN,
@@ -39,7 +45,7 @@ int main(void) {
         .uart_thread = &uart_manager;
     };
 
-    elevator_current_state elevator_center = {
+    elevator_center = {
         .elevator = CENTER,
         .current_floor = 0,
         .dir = DOWN,
@@ -51,7 +57,7 @@ int main(void) {
 
     };
 
-    elevator_current_state elevator_right = {
+    elevator_right = {
         .elevator = RIGHT,
         .current_floor = 0,
         .dir = DOWN,
@@ -62,7 +68,7 @@ int main(void) {
         .uart_thread = &uart_manager,
     };
 
-    threads_elevators ptr_str_elevators = {
+    ptr_str_elevators = {
         .elevator_left = &elevator_left,
         .elevator_center = &elevator_center,
         .elevator_right = &elevator_right

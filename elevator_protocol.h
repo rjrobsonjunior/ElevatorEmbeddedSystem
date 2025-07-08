@@ -1,7 +1,7 @@
 #ifndef ELEVATOR_PROTOCOL_H
 #define ELEVATOR_PROTOCOL_H
 
-#define MAX_CMD_SIZE 20
+#define MAX_CMD_SIZE 10
 #define ELEVATOR_HEIGHT_PER_FLOOR 5000 // mm
 #define N_FLOORS 16
 
@@ -21,10 +21,14 @@ typedef enum {
     WAITING_COMMAND,
     RECEIVING_COMMAND,
     SENDING_COMMAND_RESPONSE,
+    RECEIVING_COMMAND_RESPONSE,
     DOOR_OPENING,
     DOOR_CLOSING,
     MOVING_UP,
     MOVING_DOWN,
+    CHECKING_POSITION,
+    DOOR_OPENED,
+    DOOR_CLOSED,
     STOPPED
 } elevator_state_machine;
 
@@ -43,14 +47,10 @@ typedef enum{
     UP_CMD = 's',
     DOWN_CMD = 'd',
     STOP_CMD = 'p',
-    QUERY_POSITION_CMD = 'x'
-} elevator_command;
-
-// Comandos com parâmetro
-typedef enum{
+    QUERY_POSITION_CMD = 'x',
     TURN_ON = 'L',
     TURN_OFF = 'D'
-} elevator_btt_light;
+} elevator_command;
 
 // Botões internos
 typedef enum{
@@ -138,6 +138,8 @@ typedef struct {
     elevator_state_machine state_machine;
     bool receive_command;
     char command_buffer[MAX_CMD_SIZE]; 
+    bool receive_response;
+    char response_buffer[MAX_CMD_SIZE];
     osThreadAttr_t *uart_thread; // Pointer to UART manager thread attributes
 } elevator_current_state;
 

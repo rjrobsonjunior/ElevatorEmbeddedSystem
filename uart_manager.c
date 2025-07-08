@@ -1,5 +1,12 @@
 #include 'uart_manager.h'
 
+/*-------------------- Extern Variables --------------------*/
+extern elevator_current_state elevator_right;
+extern elevator_current_state elevator_center;
+extern elevator_current_state elevator_left;
+extern threads_elevators ptr_str_elevators;
+/* ---------------------------------------------------------*/
+
 #define BUFFER_SIZE 10
 //Circular Quueue TX
 char buffer[BUFFER_SIZE][MAX_CMD_SIZE] = {0};
@@ -29,6 +36,22 @@ void UARTIntHandler(void)
             break;
         }
     }
+    
+    switch (rx_buffer[0]) 
+    {
+        case 'e': //left elevator
+            osThreadFlagsSet(ptr_str_elevators.elevator_left->uart_thread, 0x01);
+            break;
+        case 'd': //right elevator
+            osThreadFlagsSet(ptr_str_elevators.elevator_right->uart_thread, 0x01);
+            break;
+        case 'c': //center elevator
+            osThreadFlagsSet(ptr_str_elevators.elevator_center->uart_thread, 0x01);
+            break;
+        default:
+            break;
+    }
+
     // Aqui você pode sinalizar para uma thread/processo que a mensagem chegou
     //osThreadFlagsSet
 }

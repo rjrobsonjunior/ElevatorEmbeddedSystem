@@ -1,5 +1,26 @@
 #include "elevator_protocol.h"
 
+char * mount_cmd(elevator_command cmd, elevator_position elevator, elevator_btt_id floor) 
+{
+    char command[MAX_CMD_SIZE];
+    command[0] = (char)elevator;  // 'e', 'd', or 'c'
+    command[1] = (char)cmd;
+    
+    if (cmd == TURN_ON || cmd == TURN_OFF) 
+    {
+        command[2] = (char)floor;  // Button ID
+        command[3] = 0x0D;  // Null-terminate the string
+        command[4] = '\0';  // Null-terminate the string
+    } 
+    else
+    {
+        command[2] = 0x0D;  // Null-terminate the string
+        command[3] = '\0';  // Null-terminate the string
+    }
+    
+    return command;
+}
+
 void get_call_direction(elevator_current_state *state) 
 {
     bool has_down = false;
@@ -66,10 +87,15 @@ void run_operation(elevator_current_state *state)
     char msg[10] = {0};  // message buffer
     switch (state->state_machine)  // Assuming state_machine is an enum
     {
+    case WAITING_COMMAND:
+        osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
+        // get_message(msg, sizeof(msg));  // This function should fill msg with the received command
+        state->state_machine = RECEIVING_COMMAND;  // Transition to receiving state
+        break;
     case RECEIVING_COMMAND:
             // get the message from the input buffer
             // get_message(msg, sizeof(msg));
-            switch (detect_msg_type(msg))
+            switch (detect_msg_type(state->command_buffer))
             {
                 case MSG_COMMAND_1:
                     state->requests[msg[2] - '0'] = true;  // Assuming msg[2] is a valid digit representing the floor
@@ -87,13 +113,6 @@ void run_operation(elevator_current_state *state)
                     state->dir = (call_direction)msg[4];
                     //state->state_machine = MOVING_UP;  // or MOVING_DOWN based on direction
                     break;
-                case MSG_RESPONSE_1:
-                    // Extract the elevator height from the message 
-                    break;
-                case MSG_RESPONSE_2:    
-                    break;
-                case MSG_UNKNOWN:
-                    break;
                 default:
                     break;
                 }
@@ -101,8 +120,23 @@ void run_operation(elevator_current_state *state)
     case SENDING_COMMAND_RESPONSE:
         /* code */
         break;
+    
+    case RECEIVING_COMMAND_RESPONSE:
+        switch (detect_msg_type(state->response_buffer))
+        {
+            case MSG_RESPONSE_1:
+                // Extract the elevator height from the message 
+                break;
+            case MSG_RESPONSE_2:    
+                break;
+            case MSG_UNKNOWN:
+                break;
+            default:
+                break;
+        }
     case DOOR_OPENING:
-        /* code */      
+        char *open_cmd = mount_cmd(OPEN_CMD, state->elevator, GROUND);
+              
         break;
     case DOOR_CLOSING:  
         /* code */
@@ -145,5 +179,6 @@ elevator_Thread(void *argument)
     for(;;)
     {
         run_operation(elevator_state);
+        osDelay(50);
     }
 }
