@@ -1,6 +1,6 @@
 # Arquivos de build e temporários da IDE Keil
 *.uvoptx
-*.uvguix
+*.uvguix.*
 *.bak
 *.dep
 *.lst
