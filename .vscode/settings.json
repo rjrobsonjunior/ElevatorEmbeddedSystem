@@ -3,6 +3,9 @@
         "stdint.h": "c",
         "tm4c1294ncpdt.h": "c",
         "text_encoding": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "stdbool.h": "c",
+        "uart_manager.h": "c",
+        "hw_memmap.h": "c"
     }
 }

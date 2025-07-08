@@ -1,8 +1,7 @@
 #include "elevator_protocol.h"
 
-char * mount_cmd(elevator_command cmd, elevator_position elevator, elevator_btt_id floor) 
+void mount_cmd(char *command, elevator_command cmd, elevator_position elevator, elevator_btt_id floor) 
 {
-    char command[MAX_CMD_SIZE];
     command[0] = (char)elevator;  // 'e', 'd', or 'c'
     command[1] = (char)cmd;
     
@@ -17,8 +16,13 @@ char * mount_cmd(elevator_command cmd, elevator_position elevator, elevator_btt_
         command[2] = 0x0D;  // Null-terminate the string
         command[3] = '\0';  // Null-terminate the string
     }
-    
-    return command;
+}
+
+void send_cmd(elevator_command cmd, elevator_current_state *state, elevator_btt_id floor, bool hold_uart) 
+{
+    char command[MAX_CMD_SIZE];
+    mount_cmd(command, cmd, state->elevator, floor);
+    UARTSendString(command, hold_uart);
 }
 
 void get_call_direction(elevator_current_state *state) 
@@ -117,8 +121,9 @@ void run_operation(elevator_current_state *state)
                     break;
                 }
         break;
-    case SENDING_COMMAND_RESPONSE:
-        /* code */
+    case WAITING_COMMAND_RESPONSE:
+        osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
+        state->state_machine = RECEIVING_COMMAND_RESPONSE;
         break;
     
     case RECEIVING_COMMAND_RESPONSE:
@@ -135,13 +140,16 @@ void run_operation(elevator_current_state *state)
                 break;
         }
     case DOOR_OPENING:
-        char *open_cmd = mount_cmd(OPEN_CMD, state->elevator, GROUND);
-              
+        send_cmd(OPEN_CMD, state, GROUND, false);
+        state->state_machine = state->next_state_machine;
         break;
+    
     case DOOR_CLOSING:  
-        /* code */
+        send_cmd(CLOSE_CMD, state, GROUND, false);
+        state->state_machine = state->next_state_machine;
         break;
-    case MOVING_UP:
+
+    case MOVING_UP:  
         if (state->current_floor < N_FLOORS - 1) {  
             state->current_floor++;
             state->elevator_height += ELEVATOR_HEIGHT_PER_FLOOR;
@@ -157,15 +165,16 @@ void run_operation(elevator_current_state *state)
             state->state_machine = STOPPED;  // Reached the ground floor
         }
         break;  
+    case CHECKING_POSITION:
+
+        break;
     case STOPPED:
-        // The elevator is stopped, possibly waiting for a command or door operation    
-        // You might want to check if there are any requests to process
-        if (state->requests[state->current_floor]) {
-            // Process the request for the current floor
-            state->requests[state->current_floor] = false;  // Clear the request
-            state->state_machine = DOOR_OPENING;  // Open the door
-        } else {
-            // No requests, stay stopped
+        if (state->requests[state->current_floor])
+        {
+            state->requests[state->current_floor] = false;  
+            state->state_machine = DOOR_OPENING; 
+        } else 
+        {
         }
         break;
     default:
@@ -173,9 +182,10 @@ void run_operation(elevator_current_state *state)
     }
 }
 
-elevator_Thread(void *argument) 
+void elevator_Thread(void *argument) 
 {
     elevator_current_state *elevator_state = (elevator_current_state *)argument;
+    send_cmd(INIT_CMD, elevator_state, GROUND, false);  // Initialize the elevator
     for(;;)
     {
         run_operation(elevator_state);

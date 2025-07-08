@@ -1,6 +1,14 @@
 #ifndef UART_MANAGER_H
     #define UART_MANAGER_H
-
+		
+		#include <stdbool.h>
+		#include <string.h>
+		#include <stdarg.h>
+		#include "cmsis_os2.h"
+		#include "tm4c1294ncpdt.h"
+		#include "inc/hw_memmap.h"
+		#include "driverlib/sysctl.h"
+		#include <stdint.h>
     #include "driverlib/uart.h"
     #include "driverlib/gpio.h"
     #include "driverlib/pin_map.h"
@@ -14,8 +22,8 @@
         osThreadAttr_t *elevator_right;
     } threads_elevators;
 
-    void uart_Thread(void *argument);
     void UARTIntHandler(void);
     void SetupUart(void);
+    void UARTSendString(char *msg, bool hold_uart);
 
 #endif

@@ -5,9 +5,7 @@
 #define ELEVATOR_HEIGHT_PER_FLOOR 5000 // mm
 #define N_FLOORS 16
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
+#include "uart_manager.h"
 
 typedef enum {
     MSG_UNKNOWN = 0,
@@ -20,15 +18,13 @@ typedef enum {
 typedef enum {
     WAITING_COMMAND,
     RECEIVING_COMMAND,
-    SENDING_COMMAND_RESPONSE,
+    WAITING_COMMAND_RESPONSE,
     RECEIVING_COMMAND_RESPONSE,
     DOOR_OPENING,
     DOOR_CLOSING,
     MOVING_UP,
     MOVING_DOWN,
     CHECKING_POSITION,
-    DOOR_OPENED,
-    DOOR_CLOSED,
     STOPPED
 } elevator_state_machine;
 
@@ -89,8 +85,8 @@ typedef enum{
     AT_FLOOR_13 = 'd',
     AT_FLOOR_14 = 'e',
     AT_FLOOR_15 = 'f',
-    DOOR_OPEN   = 'A',
-    DOOR_CLOSED = 'F'
+    DOOR_OPEN_EVENT   = 'A',
+    DOOR_CLOSED_EVENT = 'F'
 } elevator_event;
 
 typedef enum{
@@ -136,11 +132,11 @@ typedef struct {
     uint32_t elevator_height;      // mm
     bool requests[N_FLOORS];
     elevator_state_machine state_machine;
+    elevator_state_machine next_state_machine;
     bool receive_command;
     char command_buffer[MAX_CMD_SIZE]; 
     bool receive_response;
     char response_buffer[MAX_CMD_SIZE];
-    osThreadAttr_t *uart_thread; // Pointer to UART manager thread attributes
 } elevator_current_state;
 
 void elevator_Thread(void *argument);
