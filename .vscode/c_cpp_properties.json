@@ -5,8 +5,11 @@
             "name": "ARM",
             "includePath": [
                 "${default}",
-                "C:/Arm/Packs/ARM/CMSIS/5.7.0/CMSIS/Core/Include",
-                "C:/Keil_v5/ARM/ARMCC/include"
+                "C:/Users/Robson Junior/AppData/Local/Keil_v5/ARM/ARMCLANG/include",
+                "C:/ti/TivaWare_C_Series-2.2.0.295",
+                "C:/Users/Robson Junior/AppData/Local/Arm/Packs/ARM/CMSIS/5.9.0/CMSIS/RTOS2/Include",
+                "C:/Users/Robson Junior/AppData/Local/Arm/Packs/Keil/TM4C_DFP/1.1.0/Device/Include/TM4C129"
+
 
             ],
             "defines": [

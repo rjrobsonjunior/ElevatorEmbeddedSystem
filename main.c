@@ -25,7 +25,6 @@
 
 // --- Vari�veis Globais ---
 uint32_t SysClock;
-uint32_t adcValue;
 
 //Circular
 float buffer[BUFFER_SIZE] = {0};
@@ -33,20 +32,41 @@ int head = 0;
 int count = 0;
 osMutexId_t buffer_mutex;
 
-void SetupADC(void) {
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_ADC0));
+/*
+Claro! Aqui está a descrição das funções utilizadas dentro da função `UARTIntHandler`:
 
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-    while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOE));
-    GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_4);  // PE4 = AIN9
+- **UARTIntStatus(UART0_BASE, true);**  
+  Lê e retorna o status das interrupções pendentes da UART0. O parâmetro `true` indica que deve retornar apenas as interrupções habilitadas.
 
-    ADCSequenceConfigure(ADC0_BASE, ADC_SEQUENCER, ADC_TRIGGER_PROCESSOR, 0);
-    ADCSequenceStepConfigure(ADC0_BASE, ADC_SEQUENCER, 0, ADC_CTL_CH9 | ADC_CTL_IE | ADC_CTL_END);
-    ADCSequenceEnable(ADC0_BASE, ADC_SEQUENCER);
-    ADCIntClear(ADC0_BASE, ADC_SEQUENCER);
-}
+- **UARTIntClear(UART0_BASE, status);**  
+  Limpa (acknowledge) as interrupções especificadas pelo parâmetro `status` na UART0, permitindo que novas interrupções possam ser geradas.
 
+- **UARTCharsAvail(UART0_BASE);**  
+  Retorna verdadeiro se houver pelo menos um caractere disponível no FIFO de recepção da UART0, ou seja, se há dados para serem lidos.
+
+- **UARTCharGetNonBlocking(UART0_BASE);**  
+  Lê um caractere do FIFO de recepção da UART0 sem bloquear a execução. Se não houver dados, retorna imediatamente.
+
+Essas funções permitem que você trate a recepção de dados pela UART de forma eficiente e sem perder bytes, utilizando interrupções.
+
+void UARTIntHandler(void) {
+    uint32_t status = UARTIntStatus(UART0_BASE, true);
+    UARTIntClear(UART0_BASE, status);
+
+    while (UARTCharsAvail(UART0_BASE)) {
+        char c = UARTCharGetNonBlocking(UART0_BASE);
+        if (rx_index < RX_BUFFER_SIZE - 1) {
+            rx_buffer[rx_index++] = c;
+            if (c == '\n') { // Exemplo: final de linha
+                rx_buffer[rx_index] = '\0'; // Finaliza string
+                rx_index = 0; // Reinicia para próxima mensagem
+                // Aqui você pode sinalizar para uma thread/processo que a mensagem chegou
+            }
+        } else {
+            rx_index = 0; // Buffer overflow, reinicia
+        }
+    }
+}*/
 void UARTIntHandler(void) {
     uint32_t status = UARTIntStatus(UART0_BASE, true);
     UARTIntClear(UART0_BASE, status);
@@ -143,9 +163,8 @@ void Thread_UART(void *argument){
 int main(void) {
     // Configura o clock do sistema para 120MHz
     SysClock = SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_240), 120000000);
-		SystemCoreClock = SysClock;
-		SetupADC();
-		SetupUart();
+	SystemCoreClock = SysClock;
+	SetupUart();
     osKernelInitialize();
     osThreadAttr_t lab32 = { .name = "lab32_Thread", .priority = osPriorityNormal };
     
